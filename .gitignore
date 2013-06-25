@@ -1,0 +1,8 @@
+*.iws
+workspace.xml
+tasks.xml
+misc.xml
+.idea/dictionaries/
+local.properties
+out/
+src/demo/
