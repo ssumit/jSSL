@@ -1,7 +1,8 @@
-package prj.cyclo;
+package prj.jSSL;
 
 import org.slf4j.LoggerFactory;
-import prj.cyclo.store.ISSLStore;
+import prj.jSSL.ssl.SSLShakehandsHandler;
+import prj.jSSL.store.ISSLStore;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
@@ -9,17 +10,11 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-public class CryptoHelper<KEY>
+public class CryptoHelper
 {
-    private ISSLStore<KEY> _store;
     private org.slf4j.Logger _logger = LoggerFactory.getLogger(CryptoHelper.this.getClass().getSimpleName());
 
-    public CryptoHelper(ISSLStore<KEY> _store)
-    {
-        this._store = _store;
-    }
-
-    public SSLEngineResult decrypt(KEY userKey, SSLEngine sslEngine, byte[] incomingBytes, ByteBuffer decryptedData) throws IOException
+    public SSLEngineResult decrypt(SSLEngine sslEngine, byte[] incomingBytes, ByteBuffer decryptedData) throws IOException
     {
         ByteBuffer encryptedData = getDataForDecryption(userKey, incomingBytes);
         try
@@ -45,7 +40,7 @@ public class CryptoHelper<KEY>
         return sslEngine.wrap(applicationData, outgoingData);
     }
 
-    private ByteBuffer getDataForDecryption(KEY userKey, byte[] encryptedData)
+    private ByteBuffer getDataForDecryption(byte[] encryptedData)
     {
         byte[] remainingData =_store.getRemainingData(userKey);
         int length_remainingData = remainingData.length;
@@ -59,7 +54,7 @@ public class CryptoHelper<KEY>
         return totalIncomingData;
     }
 
-    private SSLEngineResult unwrap(KEY key, SSLEngine sslEngine, ByteBuffer unwrappedData, ByteBuffer totalIncomingData) throws IOException
+    private SSLEngineResult unwrap(SSLEngine sslEngine, ByteBuffer unwrappedData, ByteBuffer totalIncomingData) throws IOException
     {
         SSLEngineResult result;
         int totalBytesConsumed = 0;
@@ -73,7 +68,7 @@ public class CryptoHelper<KEY>
         return result;
     }
 
-    private void storeUnprocessedData(KEY userKey, ByteBuffer totalIncomingData)
+    private void storeUnprocessedData(ByteBuffer totalIncomingData)
     {
         byte[] remainingData = Arrays.copyOfRange(totalIncomingData.array(), totalIncomingData.position(), totalIncomingData.limit());
         _store.putRemainingData(userKey, remainingData);
@@ -84,7 +79,7 @@ public class CryptoHelper<KEY>
         return result.getHandshakeStatus().equals(SSLEngineResult.HandshakeStatus.FINISHED);
     }
 
-    private boolean needsUnwrap(KEY key, SSLEngineResult result, int totalBytesConsumed, int totalBytesToBeConsumed)
+    private boolean needsUnwrap(SSLEngineResult result, int totalBytesConsumed, int totalBytesToBeConsumed)
     {
         if (!isHandshakeCompleted(key))
         {
@@ -104,7 +99,7 @@ public class CryptoHelper<KEY>
         }
     }
 
-    private void addPendingData(KEY userKey, byte[] remainingData, ByteBuffer totalIncomingData)
+    private void addPendingData(byte[] remainingData, ByteBuffer totalIncomingData)
     {
         if (remainingData.length > 0)
         {
@@ -113,7 +108,7 @@ public class CryptoHelper<KEY>
         }
     }
 
-    private boolean isHandshakeCompleted(KEY userKey)
+    private boolean isHandshakeCompleted()
     {
         return _store.getHandShakeCompletedStatus(userKey);
     }

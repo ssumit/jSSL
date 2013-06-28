@@ -1,6 +1,6 @@
-package prj.cyclo;
+package prj.jSSL;
 
-import prj.cyclo.store.KeyStoreInfo;
+import prj.jSSL.store.KeyStoreInfo;
 
 public class Config
 {

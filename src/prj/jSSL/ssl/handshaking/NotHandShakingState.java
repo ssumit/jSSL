@@ -1,12 +1,12 @@
-package prj.cyclo.handshaking;
+package prj.jSSL.ssl.handshaking;
 
-import prj.cyclo.store.ISSLStore;
+import prj.jSSL.ssl.CustomSSLEngine;
 
 public class NotHandShakingState<KEY> extends IHandShakeState<KEY>
 {
-    public NotHandShakingState(ISSLStore<KEY> store)
+    public NotHandShakingState(CustomSSLEngine sslEngine)
     {
-        super(store);
+        super(sslEngine);
     }
 
     @Override

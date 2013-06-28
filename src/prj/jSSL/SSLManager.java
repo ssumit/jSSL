@@ -1,7 +1,8 @@
-package prj.cyclo;
+package prj.jSSL;
 
 import org.slf4j.LoggerFactory;
-import prj.cyclo.store.ISSLStore;
+import prj.jSSL.ssl.SSLShakehandsHandler;
+import prj.jSSL.store.ISSLStore;
 
 import javax.net.ssl.HandshakeCompletedListener;
 import javax.net.ssl.SSLEngine;
@@ -52,7 +53,7 @@ public class SSLManager<KEY>
 
     public void shakeHands(KEY userKey) throws IOException
     {
-        new SSLShakehandsHandler(userKey, _store, _transport).shakehands(userKey);
+        new SSLShakehandsHandler(userKey, _store, _transport).shakehands();
     }
 
     public boolean isHandshakeCompleted(KEY userKey)

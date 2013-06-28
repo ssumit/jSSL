@@ -1,4 +1,4 @@
-package prj.cyclo.store;
+package prj.jSSL.store;
 
 import javax.net.ssl.HandshakeCompletedListener;
 import javax.net.ssl.SSLEngine;

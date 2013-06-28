@@ -1,9 +1,9 @@
-package prj.cyclo;
+package prj.jSSL;
 
 import org.junit.Before;
 import org.junit.Test;
-import prj.cyclo.store.KeyStoreInfo;
-import prj.cyclo.store.SSLStore;
+import prj.jSSL.store.KeyStoreInfo;
+import prj.jSSL.store.SSLStore;
 
 import javax.net.ssl.HandshakeCompletedEvent;
 import javax.net.ssl.HandshakeCompletedListener;

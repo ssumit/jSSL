@@ -1,4 +1,4 @@
-package prj.cyclo;
+package prj.jSSL;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 public abstract class SecureAgent extends Agent
 {
     private static final long HANDSHAKE_TIMEOUT_IN_SECONDS = 60;
-    private prj.cyclo.SSLManager<Socket> _sslManager;
+    private prj.jSSL.SSLManager<Socket> _sslManager;
     private SSLTransport<Socket> _sslTransport;
     private final Logger _logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
     private final Map<Socket, ScheduledFuture> _handshakeTimeoutTasks = new HashMap<>();
