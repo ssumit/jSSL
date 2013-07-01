@@ -8,18 +8,18 @@ import java.io.IOException;
 
 public abstract class IHandShakeState
 {
-    protected CustomSSLEngine _sslEngine;
+    protected CustomSSLEngine customSSLEngine;
 
     public IHandShakeState(CustomSSLEngine sslEngine)
     {
-        _sslEngine = sslEngine;
+        customSSLEngine = sslEngine;
     }
 
     public abstract boolean shakeHands() throws IOException;
 
     protected void finishHandshake()
     {
-        _sslEngine.write(IReaderWriter.WriteEvent.HANDSHAKE_COMPLETE_STATUS, String.valueOf(true));
+        customSSLEngine.write(IReaderWriter.WriteEvent.HANDSHAKE_COMPLETE_STATUS, String.valueOf(true));
     }
 
     protected boolean isHandshakeStatusFinished(SSLEngineResult result)

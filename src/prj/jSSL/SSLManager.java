@@ -1,6 +1,9 @@
 package prj.jSSL;
 
 import org.slf4j.LoggerFactory;
+import prj.jSSL.ssl.BufferAllocator;
+import prj.jSSL.ssl.CryptoHelper;
+import prj.jSSL.ssl.CustomSSLEngine;
 import prj.jSSL.ssl.SSLShakehandsHandler;
 import prj.jSSL.store.ISSLStore;
 
@@ -32,12 +35,12 @@ public class SSLManager<KEY>
     public void setConfig(KEY userKey, Config config) throws IOException
     {
         _config = config;
-        new SSLEngineBuilder().initSSLEngine(config, getSSLEngine(userKey));
+        new SSLEngineBuilder().initSSLEngine(config, getSSLEngine(userKey).getSSLEngine());
     }
 
     public void initSSLEngine(KEY userKey) throws IOException, NoSuchAlgorithmException, KeyManagementException, KeyStoreException, CertificateException, UnrecoverableKeyException
     {
-        SSLEngine sslEngine = new SSLEngineBuilder().createAndInitSSLEngine(_config);
+        CustomSSLEngine sslEngine = new SSLEngineBuilder().createAndInitSSLEngine(_config);
         _store.putSSLEngine(userKey, sslEngine);
         _store.putRemainingData(userKey, new byte[0]);
         _store.setHandShakeCompletedStatus(userKey, false);
@@ -46,14 +49,14 @@ public class SSLManager<KEY>
     public void beginSSLHandshake(KEY userKey, HandshakeCompletedListener handshakeCompletedListener) throws IOException
     {
         _store.putHandShakeCompletedListener(userKey, handshakeCompletedListener);
-        SSLEngine sslEngine = getSSLEngine(userKey);
-        sslEngine.beginHandshake();
+        CustomSSLEngine customSSLEngine = getSSLEngine(userKey);
+        customSSLEngine.getSSLEngine().beginHandshake();
         shakeHands(userKey);
     }
 
     public void shakeHands(KEY userKey) throws IOException
     {
-        new SSLShakehandsHandler(userKey, _store, _transport).shakehands();
+        new SSLShakehandsHandler(getSSLEngine(userKey)).shakehands();
     }
 
     public boolean isHandshakeCompleted(KEY userKey)
@@ -68,7 +71,7 @@ public class SSLManager<KEY>
         int totalBytesConsumed = 0;
         do
         {
-            result = new CryptoHelper<KEY>(_store).encrypt(getSSLEngine(userKey), Arrays.copyOfRange(plainBytes, totalBytesConsumed, plainBytes.length), encryptedData);
+            result = new CryptoHelper().encrypt(getSSLEngine(userKey), Arrays.copyOfRange(plainBytes, totalBytesConsumed, plainBytes.length), encryptedData);
             byte[] sendableData = copyToByteArray(encryptedData, result.bytesProduced());
             _transport.send(userKey, sendableData);
             encryptedData.clear();
@@ -81,7 +84,7 @@ public class SSLManager<KEY>
     {
         try
         {
-            SSLEngine engine = getSSLEngine(userKey);
+            SSLEngine engine = getSSLEngine(userKey).getSSLEngine();
             engine.getHandshakeSession().invalidate();
         }
         catch (IOException e)
@@ -96,7 +99,7 @@ public class SSLManager<KEY>
     {
         try
         {
-            SSLEngine engine = getSSLEngine(userKey);
+            SSLEngine engine = getSSLEngine(userKey).getSSLEngine();
             engine.closeOutbound();
             engine.closeInbound();
         }
@@ -111,14 +114,14 @@ public class SSLManager<KEY>
         _transport = sslTransport;
     }
 
-    public void decrypt(KEY socket, byte[] incomingData, ByteBuffer decryptedData) throws IOException
+    public void decrypt(KEY socket, byte[] incomingData) throws IOException
     {
-        new CryptoHelper(_store).decrypt(socket, getSSLEngine(socket), incomingData, decryptedData);
+        new CryptoHelper().decrypt(getSSLEngine(socket), incomingData);
     }
 
-    public ByteBuffer allocateByteBuffer(KEY userKey, Operation receiving) throws IOException
+    private ByteBuffer allocateByteBuffer(KEY userKey, Operation operation) throws IOException
     {
-        return new BufferAllocator<>().allocateByteBuffer(getSSLEngine(userKey), Operation.SENDING);
+        return new BufferAllocator().getEmptyByteBuffer(getSSLEngine(userKey), operation);
     }
 
     private void cleanState(KEY userKey)
@@ -137,9 +140,9 @@ public class SSLManager<KEY>
         return bytes;
     }
 
-    private SSLEngine getSSLEngine(KEY key) throws IOException
+    private CustomSSLEngine getSSLEngine(KEY key) throws IOException
     {
-        SSLEngine sslEngine = _store.getSSLEngine(key);
+        CustomSSLEngine sslEngine = _store.getSSLEngine(key);
         if (sslEngine != null)
         {
             return sslEngine;

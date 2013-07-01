@@ -3,16 +3,18 @@ package prj.jSSL.ssl;
 import javax.net.ssl.HandshakeCompletedListener;
 import javax.net.ssl.SSLEngine;
 
-public abstract class CustomSSLEngine extends SSLEngine implements IReaderWriter
+public class CustomSSLEngine implements IReaderWriter
 {
     HandshakeCompletedListener _handshakeCompletedListener;
-    protected CustomSSLEngine(HandshakeCompletedListener handshakeCompletedListener)
+    private SSLEngine mSSLEngine;
+
+    public CustomSSLEngine(SSLEngine sslEngine, HandshakeCompletedListener handshakeCompletedListener)
     {
-        super();
+        mSSLEngine = sslEngine;
         _handshakeCompletedListener = handshakeCompletedListener;
     }
 
-    public String read(ReadEvent readEvent)
+    public byte[] read(ReadEvent readEvent)
     {
         return null;
     }
@@ -27,5 +29,10 @@ public abstract class CustomSSLEngine extends SSLEngine implements IReaderWriter
                     _handshakeCompletedListener.handshakeCompleted(null);
                 }
         }
+    }
+
+    public SSLEngine getSSLEngine()
+    {
+        return mSSLEngine;
     }
 }

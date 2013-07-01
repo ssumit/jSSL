@@ -1,7 +1,7 @@
 package prj.jSSL.ssl.handshaking;
 
-import prj.jSSL.BufferAllocator;
-import prj.jSSL.CryptoHelper;
+import prj.jSSL.ssl.BufferAllocator;
+import prj.jSSL.ssl.CryptoHelper;
 import prj.jSSL.SSLManager;
 import prj.jSSL.ssl.CustomSSLEngine;
 import prj.jSSL.ssl.IReaderWriter;
@@ -34,12 +34,12 @@ public class NeedWrapState extends IHandShakeState
 
     private SSLEngineResult wrapAndSend() throws IOException
     {
-        ByteBuffer encryptedData = new BufferAllocator().allocateByteBuffer(_sslEngine, SSLManager.Operation.SENDING);
-        SSLEngineResult result = new CryptoHelper().encrypt(_sslEngine, new byte[0], encryptedData);
+        ByteBuffer encryptedData = new BufferAllocator().getEmptyByteBuffer(customSSLEngine, SSLManager.Operation.SENDING);
+        SSLEngineResult result = new CryptoHelper().encrypt(customSSLEngine, new byte[0], encryptedData);
         encryptedData.flip();
 
         byte[] sslMessage = getSSLMessageBytesFromBuffer(encryptedData, result);
-        _sslEngine.write(IReaderWriter.WriteEvent.WRAP_STATE, sslMessage.toString());
+        customSSLEngine.write(IReaderWriter.WriteEvent.WRAP_STATE, sslMessage.toString());
         return result;
     }
 

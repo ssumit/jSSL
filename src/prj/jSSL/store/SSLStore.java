@@ -1,13 +1,14 @@
 package prj.jSSL.store;
 
+import prj.jSSL.ssl.CustomSSLEngine;
+
 import javax.net.ssl.HandshakeCompletedListener;
-import javax.net.ssl.SSLEngine;
 import java.util.HashMap;
 import java.util.Map;
 
 public class SSLStore<KEY> implements ISSLStore<KEY>
 {
-    private final Map<KEY, SSLEngine> _sslEngines;
+    private final Map<KEY, CustomSSLEngine> _sslEngines;
     private final Map<KEY, HandshakeCompletedListener> _handshakeCompletedListeners;
     private final Map<KEY, byte[]> _remainingData;
     private final Map<KEY, Boolean> _handshakeCompletedStatus;
@@ -27,7 +28,7 @@ public class SSLStore<KEY> implements ISSLStore<KEY>
     }
 
     @Override
-    public SSLEngine getSSLEngine(KEY key)
+    public CustomSSLEngine getSSLEngine(KEY key)
     {
         return _sslEngines.get(key);
     }
@@ -69,7 +70,7 @@ public class SSLStore<KEY> implements ISSLStore<KEY>
     }
 
     @Override
-    public void putSSLEngine(KEY userKey, SSLEngine sslEngine)
+    public void putSSLEngine(KEY userKey, CustomSSLEngine sslEngine)
     {
         _sslEngines.put(userKey, sslEngine);
     }

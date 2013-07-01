@@ -16,9 +16,9 @@ public class SSLHandshakeStateHolder
         _handShakeState = getAppropriateState(handshakeStatus, sslEngine);
     }
 
-    public SSLHandshakeStateHolder(CustomSSLEngine sslEngine)
+    public SSLHandshakeStateHolder(CustomSSLEngine customSSLEngine)
     {
-        this(sslEngine.getHandshakeStatus(), sslEngine);
+        this(customSSLEngine.getSSLEngine().getHandshakeStatus(), customSSLEngine);
     }
 
     public boolean shakeHands() throws IOException

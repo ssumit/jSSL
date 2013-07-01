@@ -7,8 +7,6 @@ import javax.net.ssl.HandshakeCompletedEvent;
 import javax.net.ssl.HandshakeCompletedListener;
 import java.io.IOException;
 import java.net.Socket;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
@@ -104,24 +102,15 @@ public abstract class SecureAgent extends Agent
     {
         try
         {
-            ByteBuffer decryptedData = _sslManager.allocateByteBuffer(socket, SSLManager.Operation.RECEIVING);
-            if (decryptedData != null)
+            _sslManager.decrypt(socket, incomingData);
+/*            if (_sslManager.isHandshakeCompleted(socket))
             {
-                _sslManager.decrypt(socket, incomingData, decryptedData);
-                byte[] decryptedBytes = Arrays.copyOfRange(decryptedData.array(), 0, decryptedData.position());
-                if (_sslManager.isHandshakeCompleted(socket))
-                {
-                    secureReceive(socket, decryptedBytes);
-                }
-                else
-                {
-                    _sslManager.shakeHands(socket);
-                }
+                //secureReceive(socket, decryptedBytes); will do via listeners
             }
             else
             {
-                close(socket);
-            }
+                _sslManager.shakeHands(socket); //will do via listeners
+            }*/
         }
         catch (Exception e)
         {

@@ -1,15 +1,11 @@
 package prj.jSSL.ssl.handshaking;
 
-import prj.jSSL.BufferAllocator;
-import prj.jSSL.CryptoHelper;
-import prj.jSSL.SSLManager;
+import prj.jSSL.ssl.CryptoHelper;
 import prj.jSSL.ssl.CustomSSLEngine;
 import prj.jSSL.ssl.IReaderWriter;
-import prj.jSSL.store.ISSLStore;
 
 import javax.net.ssl.SSLEngineResult;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 public class NeedUnWrapState extends IHandShakeState
 {
@@ -24,8 +20,7 @@ public class NeedUnWrapState extends IHandShakeState
         if (anyUnprocessedDataFromPreviousReceives())
         {
             CryptoHelper cryptoHelper = new CryptoHelper();
-            ByteBuffer decryptedData = new BufferAllocator().allocateByteBuffer(_sslEngine, SSLManager.Operation.RECEIVING);
-            SSLEngineResult unwrapResult = cryptoHelper.decrypt(_sslEngine, new byte[0], decryptedData);
+            SSLEngineResult unwrapResult = cryptoHelper.decrypt(customSSLEngine, new byte[0]);
             if (unwrapResult.getHandshakeStatus().equals(SSLEngineResult.HandshakeStatus.NEED_UNWRAP))
             {
                 return true;
@@ -48,7 +43,7 @@ public class NeedUnWrapState extends IHandShakeState
 
     private boolean anyUnprocessedDataFromPreviousReceives()
     {
-        String data = _sslEngine.read(IReaderWriter.ReadEvent.REMAINING_DATA);
-        return data!=null &&  !data.isEmpty();
+        byte[] data = customSSLEngine.read(IReaderWriter.ReadEvent.REMAINING_DATA);
+        return data!=null &&  data.length>0;
     }
 }

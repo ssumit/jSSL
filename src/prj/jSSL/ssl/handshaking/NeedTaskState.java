@@ -21,7 +21,7 @@ public class NeedTaskState extends IHandShakeState
     private void processLongRunningTask()
     {
         Runnable task;
-        while ((task = _sslEngine.getDelegatedTask()) != null)
+        while ((task = customSSLEngine.getSSLEngine().getDelegatedTask()) != null)
         {
             task.run();
         }
