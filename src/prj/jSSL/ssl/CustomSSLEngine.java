@@ -5,7 +5,7 @@ import javax.net.ssl.SSLEngine;
 
 public class CustomSSLEngine implements IReaderWriter
 {
-    HandshakeCompletedListener _handshakeCompletedListener;
+    private HandshakeCompletedListener _handshakeCompletedListener;
     private SSLEngine mSSLEngine;
 
     public CustomSSLEngine(SSLEngine sslEngine, HandshakeCompletedListener handshakeCompletedListener)
@@ -28,6 +28,9 @@ public class CustomSSLEngine implements IReaderWriter
                 {
                     _handshakeCompletedListener.handshakeCompleted(null);
                 }
+                break;
+            case WRAP_STATE:
+                break;
         }
     }
 

@@ -57,11 +57,7 @@ public abstract class SecureAgent extends Agent
         _sslManager.setTransport(_sslTransport);
         try
         {
-            _sslManager.initSSLEngine(socket);
-            final ScheduledFuture handShakeTimeoutTask = scheduleHandshakeTimeout(socket);
-            _handshakeTimeoutTasks.put(socket, handShakeTimeoutTask);
-
-            _sslManager.beginSSLHandshake(socket, new HandshakeCompletedListener()
+            _sslManager.initSSLEngine(socket, new HandshakeCompletedListener()
             {
                 public void handshakeCompleted(HandshakeCompletedEvent alwaysNull)
                 {
@@ -69,6 +65,10 @@ public abstract class SecureAgent extends Agent
                     secureConnectionMade(socket);
                 }
             });
+            final ScheduledFuture handShakeTimeoutTask = scheduleHandshakeTimeout(socket);
+            _handshakeTimeoutTasks.put(socket, handShakeTimeoutTask);
+
+            _sslManager.beginSSLHandshake(socket);
         }
         catch (Exception e)
         {

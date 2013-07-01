@@ -2,7 +2,6 @@ package prj.jSSL;
 
 import prj.jSSL.ssl.CustomSSLEngine;
 
-import javax.net.ssl.HandshakeCompletedEvent;
 import javax.net.ssl.HandshakeCompletedListener;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
@@ -18,18 +17,12 @@ import java.util.List;
 
 public class SSLEngineBuilder
 {
-    public CustomSSLEngine createAndInitSSLEngine(Config config) throws IOException, NoSuchAlgorithmException, KeyManagementException, KeyStoreException, CertificateException, UnrecoverableKeyException
+    public CustomSSLEngine createAndInitSSLEngine(Config config, HandshakeCompletedListener handshakeCompletedListener) throws IOException, NoSuchAlgorithmException, KeyManagementException, KeyStoreException, CertificateException, UnrecoverableKeyException
     {
         SSLContext sslcontext = config.getKeyStoreInfo().getSSLContext();
         SSLEngine sslEngine = sslcontext.createSSLEngine();
         initSSLEngine(config, sslEngine);
-        CustomSSLEngine customSSLEngine = new CustomSSLEngine(sslEngine, new HandshakeCompletedListener() {
-            @Override
-            public void handshakeCompleted(HandshakeCompletedEvent handshakeCompletedEvent)
-            {
-                ;
-            }
-        });
+        CustomSSLEngine customSSLEngine = new CustomSSLEngine(sslEngine, handshakeCompletedListener);
         return customSSLEngine;
     }
 

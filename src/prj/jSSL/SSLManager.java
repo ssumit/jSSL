@@ -38,17 +38,16 @@ public class SSLManager<KEY>
         new SSLEngineBuilder().initSSLEngine(config, getSSLEngine(userKey).getSSLEngine());
     }
 
-    public void initSSLEngine(KEY userKey) throws IOException, NoSuchAlgorithmException, KeyManagementException, KeyStoreException, CertificateException, UnrecoverableKeyException
+    public void initSSLEngine(KEY userKey, HandshakeCompletedListener handshakeCompletedListener) throws IOException, NoSuchAlgorithmException, KeyManagementException, KeyStoreException, CertificateException, UnrecoverableKeyException
     {
-        CustomSSLEngine sslEngine = new SSLEngineBuilder().createAndInitSSLEngine(_config);
+        CustomSSLEngine sslEngine = new SSLEngineBuilder().createAndInitSSLEngine(_config, handshakeCompletedListener);
         _store.putSSLEngine(userKey, sslEngine);
         _store.putRemainingData(userKey, new byte[0]);
         _store.setHandShakeCompletedStatus(userKey, false);
     }
 
-    public void beginSSLHandshake(KEY userKey, HandshakeCompletedListener handshakeCompletedListener) throws IOException
+    public void beginSSLHandshake(KEY userKey) throws IOException
     {
-        _store.putHandShakeCompletedListener(userKey, handshakeCompletedListener);
         CustomSSLEngine customSSLEngine = getSSLEngine(userKey);
         customSSLEngine.getSSLEngine().beginHandshake();
         shakeHands(userKey);
@@ -90,7 +89,6 @@ public class SSLManager<KEY>
         catch (IOException e)
         {
         }
-        _store.removeHandShakeCompleteListener(userKey);
         _store.removeRemainingData(userKey);
         _store.removeHandShakeCompleteStatus(userKey);
     }
@@ -127,7 +125,6 @@ public class SSLManager<KEY>
     private void cleanState(KEY userKey)
     {
         _store.removeSSLEngine(userKey);
-        _store.removeHandShakeCompleteListener(userKey);
         _store.removeRemainingData(userKey);
         _store.removeHandShakeCompleteStatus(userKey);
     }

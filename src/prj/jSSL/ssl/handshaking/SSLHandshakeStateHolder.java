@@ -27,6 +27,7 @@ public class SSLHandshakeStateHolder
     }
 
     private IHandShakeState getAppropriateState(SSLEngineResult.HandshakeStatus handshakeStatus, CustomSSLEngine sslEngine) {
+        System.out.println("hand shake holder state : " + handshakeStatus.name());
         switch (handshakeStatus)
         {
             case FINISHED:
