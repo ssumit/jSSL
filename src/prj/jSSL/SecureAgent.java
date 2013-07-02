@@ -2,6 +2,7 @@ package prj.jSSL;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import prj.jSSL.ssl.IReaderWriter;
 
 import javax.net.ssl.HandshakeCompletedEvent;
 import javax.net.ssl.HandshakeCompletedListener;
@@ -17,7 +18,7 @@ public abstract class SecureAgent extends Agent
 {
     private static final long HANDSHAKE_TIMEOUT_IN_SECONDS = 60;
     private prj.jSSL.SSLManager<Socket> _sslManager;
-    private SSLTransport<Socket> _sslTransport;
+    private IReaderWriter _sslTransport;
     private final Logger _logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
     private final Map<Socket, ScheduledFuture> _handshakeTimeoutTasks = new HashMap<>();
 
@@ -37,12 +38,18 @@ public abstract class SecureAgent extends Agent
     private void setupSSL(SSLManager<Socket> sslManager)
     {
         _sslManager = sslManager;
-        _sslTransport = new SSLTransport<Socket>()
-        {
-
-            public void send(Socket socket, byte[] data) throws IOException
+        _sslTransport = new IReaderWriter() {
+            @Override
+            public byte[] read(ReadEvent readEvent)
             {
-                SecureAgent.super.send(socket, data);
+                System.out.println("read event : " + readEvent);
+                return new byte[0];
+            }
+
+            @Override
+            public void write(WriteEvent writeEvent, byte[] dataToBeWritten)
+            {
+                System.out.println("write event : " + writeEvent + " data : " + dataToBeWritten);
             }
         };
     }
@@ -54,7 +61,6 @@ public abstract class SecureAgent extends Agent
     @Override
     public final void connectionMade(final Socket socket)
     {
-        _sslManager.setTransport(_sslTransport);
         try
         {
             _sslManager.initSSLEngine(socket, new HandshakeCompletedListener()
@@ -64,7 +70,7 @@ public abstract class SecureAgent extends Agent
                     cancelHandshakeTimeoutTask(socket);
                     secureConnectionMade(socket);
                 }
-            });
+            }, _sslTransport);
             final ScheduledFuture handShakeTimeoutTask = scheduleHandshakeTimeout(socket);
             _handshakeTimeoutTasks.put(socket, handShakeTimeoutTask);
 
@@ -131,7 +137,7 @@ public abstract class SecureAgent extends Agent
     {
         try
         {
-            _sslManager.send(socket, plainData);
+            _sslManager.encrypt(socket, plainData);
         }
         catch (Exception e)
         {

@@ -20,12 +20,14 @@ public class NeedUnWrapState extends IHandShakeState
         if (anyUnprocessedDataFromPreviousReceives())
         {
             CryptoHelper cryptoHelper = new CryptoHelper();
-            SSLEngineResult unwrapResult = cryptoHelper.decrypt(customSSLEngine, new byte[0]);
-            if (unwrapResult.getHandshakeStatus().equals(SSLEngineResult.HandshakeStatus.NEED_UNWRAP))
+            cryptoHelper.decrypt(customSSLEngine, new byte[0]);
+            SSLEngineResult.HandshakeStatus handshakeStatus = customSSLEngine.getSSLEngine().getHandshakeStatus();
+
+            if (handshakeStatus.equals(SSLEngineResult.HandshakeStatus.NEED_UNWRAP))
             {
                 return true;
             }
-            else if (isHandshakeStatusFinished(unwrapResult))
+            else if (handshakeStatus.equals(SSLEngineResult.HandshakeStatus.FINISHED))
             {
                 finishHandshake(); //go to finish state
                 return true;
@@ -44,6 +46,6 @@ public class NeedUnWrapState extends IHandShakeState
     private boolean anyUnprocessedDataFromPreviousReceives()
     {
         byte[] data = customSSLEngine.read(IReaderWriter.ReadEvent.REMAINING_DATA);
-        return data!=null &&  data.length>0;
+        return data!=null && data.length>0;
     }
 }

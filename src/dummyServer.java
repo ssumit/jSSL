@@ -1,9 +1,9 @@
-import prj.cyclo.Config;
-import prj.cyclo.SSLManager;
-import prj.cyclo.SecureAgent;
-import prj.cyclo.TCPReactor;
-import prj.cyclo.store.KeyStoreInfo;
-import prj.cyclo.store.SSLStore;
+import prj.jSSL.Config;
+import prj.jSSL.SSLManager;
+import prj.jSSL.SecureAgent;
+import prj.jSSL.TCPReactor;
+import prj.jSSL.store.KeyStoreInfo;
+import prj.jSSL.store.SSLStore;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

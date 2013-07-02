@@ -7,11 +7,17 @@ import javax.net.ssl.SSLEngineResult;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+/**
+ * This class contains convenience extensions f SSL Engine's wrap and unwrap methods. SSL Engine consumes complete
+ * TLS/SSL packets only, therefore we might need to handle buffer underflow cae of unwrap method. Rest all cases can be
+ * handled by taking th buffer of appropriate sizes.
+ */
+
 public class CryptoHelper
 {
     private org.slf4j.Logger _logger = LoggerFactory.getLogger(CryptoHelper.this.getClass().getSimpleName());
 
-    public SSLEngineResult decrypt(CustomSSLEngine sslEngine, byte[] encryptedDataBytes) throws IOException
+    public void decrypt(CustomSSLEngine sslEngine, byte[] encryptedDataBytes) throws IOException
     {
         try
         {
@@ -20,7 +26,6 @@ public class CryptoHelper
             {
                 new SSLShakehandsHandler(sslEngine).finishShakeHand();
             }
-            return result;
         }
         catch (IOException exception)
         {
@@ -29,21 +34,40 @@ public class CryptoHelper
         }
     }
 
-    public SSLEngineResult encrypt(CustomSSLEngine customSSLEngine, byte[] data, ByteBuffer outgoingData) throws IOException
+    public void encrypt(CustomSSLEngine customSSLEngine, byte[] data) throws IOException
     {
-        ByteBuffer applicationData = ByteBuffer.wrap(data);
-        return customSSLEngine.getSSLEngine().wrap(applicationData, outgoingData);
+        wrap(customSSLEngine, data);
     }
 
-    /**
-     *
-     * @param customSSLEngine
-     * @return
-     * @throws IOException
-     * @throws RuntimeException
-     * This function requires some minimum amount of data(say some required number of bytes) to work on. If the amount of data is less then this data needs to be stored.
-     * This function will read the pending data along with new data do unwrap and store any remaining data if required.
-     */
+    private SSLEngineResult wrap(CustomSSLEngine customSSLEngine, byte[] plainAppData) throws IOException
+    {
+        ByteBuffer applicationData = ByteBuffer.allocate(plainAppData.length);
+        ByteBuffer outgoingData = new BufferAllocator().getEmptyByteBuffer(customSSLEngine, SSLManager.Operation.SENDING);
+        while (true)
+        {
+            SSLEngineResult sslEngineResult = customSSLEngine.getSSLEngine().wrap(applicationData, outgoingData);
+            switch (sslEngineResult.getStatus())
+            {
+                case BUFFER_UNDERFLOW:
+                    //source buffer is small so either we enlarge it or break the data to call unwrap multiple time it
+                    throw new RuntimeException("BUFFER UNDERFLOW WRAP");
+                case BUFFER_OVERFLOW:
+                    //break the data into smaller chunks as the destination buffer is small and again unwrap OR we can enlarge the buffer
+                    int appSize = customSSLEngine.getSSLEngine().getSession().getPacketBufferSize();
+                    ByteBuffer byteBuffer = ByteBuffer.allocate(appSize + outgoingData.position());
+                    outgoingData.flip();
+                    byteBuffer.put(outgoingData);
+                    outgoingData = byteBuffer;
+                    break;
+                case OK:
+                    customSSLEngine.write(IReaderWriter.WriteEvent.WRAP_STATE, outgoingData.array());
+                    return sslEngineResult;
+                case CLOSED:
+                    break;
+            }
+        }
+    }
+
     private SSLEngineResult unwrap(CustomSSLEngine customSSLEngine, byte[] encryptedDataBytes) throws IOException, RuntimeException
     {
         byte[] pendingData = customSSLEngine.read(IReaderWriter.ReadEvent.REMAINING_DATA);
@@ -51,29 +75,16 @@ public class CryptoHelper
         totalIncomingData.put(pendingData);
         totalIncomingData.put(encryptedDataBytes);
         ByteBuffer unwrappedData = new BufferAllocator().getEmptyByteBuffer(customSSLEngine, SSLManager.Operation.RECEIVING);
-        int totalBytesConsumed = 0;
-        int totalBytesToBeConsumed = totalIncomingData.array().length;
         while (true)
         {
             SSLEngineResult result = customSSLEngine.getSSLEngine().unwrap(totalIncomingData, unwrappedData);
-            totalBytesConsumed = totalBytesConsumed + result.bytesConsumed();
             switch (result.getStatus())
             {
                 case BUFFER_UNDERFLOW:
-                    int netSize = customSSLEngine.getSSLEngine().getSession().getPacketBufferSize();
-                    if(netSize > unwrappedData.capacity())
-                    {
-                        ByteBuffer byteBuffer = ByteBuffer.allocate(netSize);
-                        totalIncomingData.flip();
-                        byteBuffer.put(totalIncomingData);
-                        totalIncomingData = byteBuffer;
-                    }
-                    else
-                    {
-                        throw new RuntimeException("packet is not completely received.. cannot process will store data");
-                    }
-                    break;
+                    //source buffer is small so either we enlarge it or break the data to call unwrap multiple time it
+                    customSSLEngine.write(IReaderWriter.WriteEvent.REMAINING_DATA, encryptedDataBytes);
                 case BUFFER_OVERFLOW:
+                    //break the data into smaller chunks as the destination buffer is small and again unwrap OR we can enlarge the buffer
                     int appSize = customSSLEngine.getSSLEngine().getSession().getApplicationBufferSize();
                     ByteBuffer byteBuffer = ByteBuffer.allocate(appSize + unwrappedData.position());
                     unwrappedData.flip();
@@ -81,22 +92,8 @@ public class CryptoHelper
                     unwrappedData = byteBuffer;
                     break;
                 case OK:
-                    SSLEngineResult.HandshakeStatus handshakeStatus = customSSLEngine.getSSLEngine().getHandshakeStatus();
-                    if(handshakeStatus.equals(SSLEngineResult.HandshakeStatus.NEED_UNWRAP) && result.bytesProduced() == 0)
-                    {
-                        continue;
-                        //repeat;
-                    }
-                    else if(handshakeStatus.equals(SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING) && (result.bytesProduced()!= 0 || totalBytesConsumed < totalBytesToBeConsumed))
-                    {
-                        continue;
-                        //repeat;
-                    }
-                    else
-                    {
-                        //do not repeat
-                        return result;
-                    }
+                    customSSLEngine.write(IReaderWriter.WriteEvent.UNWRAP_STATE, unwrappedData.array());
+                    return result;
                 case CLOSED:
                         break;
             }

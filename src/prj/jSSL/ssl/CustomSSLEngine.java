@@ -5,33 +5,29 @@ import javax.net.ssl.SSLEngine;
 
 public class CustomSSLEngine implements IReaderWriter
 {
-    private HandshakeCompletedListener _handshakeCompletedListener;
+    private HandshakeCompletedListener mHandshakeCompletedListener;
     private SSLEngine mSSLEngine;
+    private IReaderWriter mReaderWriter;
 
-    public CustomSSLEngine(SSLEngine sslEngine, HandshakeCompletedListener handshakeCompletedListener)
+    public CustomSSLEngine(SSLEngine sslEngine, HandshakeCompletedListener handshakeCompletedListener, IReaderWriter readerWriter)
     {
         mSSLEngine = sslEngine;
-        _handshakeCompletedListener = handshakeCompletedListener;
+        mHandshakeCompletedListener = handshakeCompletedListener;
+        mReaderWriter = readerWriter;
     }
 
+    @Override
     public byte[] read(ReadEvent readEvent)
     {
-        return null;
+        System.out.println("read : customSSLE data,  read event : " + readEvent);
+        return mReaderWriter.read(readEvent);
     }
 
-    public void write(WriteEvent writeEvent, String dataToBeWritten)
+    @Override
+    public void write(WriteEvent writeEvent, byte[] dataToBeWritten)
     {
-        switch (writeEvent)
-        {
-            case HANDSHAKE_COMPLETE_STATUS:
-                if(dataToBeWritten.equals(String.valueOf(true)))
-                {
-                    _handshakeCompletedListener.handshakeCompleted(null);
-                }
-                break;
-            case WRAP_STATE:
-                break;
-        }
+        System.out.println("write : customSSLE data : " + dataToBeWritten + " write event : " + writeEvent);
+        mReaderWriter.write(writeEvent, dataToBeWritten);
     }
 
     public SSLEngine getSSLEngine()

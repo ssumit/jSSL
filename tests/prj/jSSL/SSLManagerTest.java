@@ -2,18 +2,15 @@ package prj.jSSL;
 
 import org.junit.Before;
 import org.junit.Test;
+import prj.jSSL.ssl.IReaderWriter;
 import prj.jSSL.store.KeyStoreInfo;
 import prj.jSSL.store.SSLStore;
 
 import javax.net.ssl.HandshakeCompletedEvent;
 import javax.net.ssl.HandshakeCompletedListener;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
 
-import static junit.framework.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static junit.framework.Assert.assertTrue;
 
 public class SSLManagerTest
 {
@@ -45,50 +42,55 @@ public class SSLManagerTest
         final Integer CLIENT = 9;
         final Integer SERVER = 10;
 
-
-        SSLTransport<Integer> serverTransport = new SSLTransport<Integer>()
-        {
+        IReaderWriter _sslServerTransport = new IReaderWriter() {
             @Override
-            public void send(Integer key, byte[] data) throws IOException
+            public byte[] read(ReadEvent readEvent)
             {
-                ByteBuffer decryptedData = sslServer.allocateByteBuffer(key, SSLManager.Operation.SENDING);
-                System.out.println("S > C: " + data.length);
+                System.out.println("read event : " + readEvent);
+                return new byte[0];
+            }
 
-
+            @Override
+            public void write(WriteEvent writeEvent, byte[] dataToBeWritten)
+            {
+                System.out.println("write event : " + writeEvent + " data : " + dataToBeWritten);
+                System.out.println("S > C: " + dataToBeWritten.length);
                 System.out.println("SSLClient| Received data");
-                sslClient.decrypt(SERVER, data, decryptedData);
-                if (!sslClient.isHandshakeCompleted(SERVER))
-                {
+                try {
+                    sslClient.decrypt(SERVER, dataToBeWritten);
                     sslClient.shakeHands(SERVER);
+                } catch (IOException e) {
+                    System.out.println("S > C: : IOEXCEPTION" );
                 }
-
             }
         };
-        SSLTransport<Integer> clientTransport = new SSLTransport<Integer>()
-        {
+
+        IReaderWriter _sslClientTransport = new IReaderWriter() {
             @Override
-            public void send(Integer key, byte[] data) throws IOException
+            public byte[] read(ReadEvent readEvent)
             {
-                ByteBuffer decryptedData = sslClient.allocateByteBuffer(key, SSLManager.Operation.SENDING);
-                System.out.println("C > S: " + data.length);
+                System.out.println("read event : " + readEvent);
+                return new byte[0];
+            }
 
-
+            @Override
+            public void write(WriteEvent writeEvent, byte[] dataToBeWritten)
+            {
+                System.out.println("write event : " + writeEvent + " data : " + dataToBeWritten);
+                System.out.println("C > S: " + dataToBeWritten.length);
                 System.out.println("SSLServer| Received data");
-                sslServer.decrypt(CLIENT, data, decryptedData);
-                if (!sslServer.isHandshakeCompleted(CLIENT))
-                {
+                try{
+                    sslServer.decrypt(CLIENT, dataToBeWritten);
                     sslServer.shakeHands(CLIENT);
                 }
+                catch (IOException e)
+                {
+                    System.out.println("C > S: : IOEXCEPTION" );
+                }
             }
         };
 
-        sslServer.setTransport(serverTransport);
-        sslClient.setTransport(clientTransport);
-        sslServer.initSSLEngine(CLIENT);
-        sslClient.initSSLEngine(SERVER);
-
-        System.out.println("SSLServer| handshake begins");
-        sslServer.beginSSLHandshake(CLIENT, new HandshakeCompletedListener()
+        sslServer.initSSLEngine(CLIENT, new HandshakeCompletedListener()
         {
             @Override
             public void handshakeCompleted(HandshakeCompletedEvent handshakeCompletedEvent)
@@ -96,10 +98,9 @@ public class SSLManagerTest
                 System.out.println("Server Done");
                 assertTrue(true);
             }
-        });
+        }, _sslServerTransport);
 
-        System.out.println("SSLCLIENT| handshake begins");
-        sslClient.beginSSLHandshake(SERVER, new HandshakeCompletedListener()
+        sslClient.initSSLEngine(SERVER, new HandshakeCompletedListener()
         {
             @Override
             public void handshakeCompleted(HandshakeCompletedEvent handshakeCompletedEvent)
@@ -107,7 +108,13 @@ public class SSLManagerTest
                 System.out.println("Client Done");
                 assertTrue(true);
             }
-        });
+        }, _sslClientTransport);
+
+        System.out.println("SSLCLIENT| handshake begins");
+        sslClient.beginSSLHandshake(SERVER);
+
+        System.out.println("SSLServer| handshake begins");
+        sslServer.beginSSLHandshake(CLIENT);
     }
 
     @Test
@@ -125,12 +132,8 @@ public class SSLManagerTest
             @Override
             public void send(Integer key, byte[] data) throws IOException
             {
-                ByteBuffer decryptedData = sslServer.allocateByteBuffer(key, SSLManager.Operation.SENDING);
-                sslClient.decrypt(SERVER, data, decryptedData);
-                if (!sslClient.isHandshakeCompleted(SERVER))
-                {
-                    sslClient.shakeHands(SERVER);
-                }
+                sslClient.decrypt(SERVER, data);
+                sslClient.shakeHands(SERVER);
             }
         };
         SSLTransport<Integer> clientTransport = new SSLTransport<Integer>()
@@ -138,9 +141,8 @@ public class SSLManagerTest
             @Override
             public void send(Integer key, byte[] data) throws IOException
             {
-                ByteBuffer decryptedData = sslClient.allocateByteBuffer(key, SSLManager.Operation.SENDING);
-                sslServer.decrypt(CLIENT, data, decryptedData);
-                if (sslClient.isHandshakeCompleted(SERVER))
+                sslServer.decrypt(CLIENT, data);
+/*                if (sslClient.isHandshakeCompleted(SERVER))
                 {
                     byte[] decryptedBytes = Arrays.copyOfRange(decryptedData.array(), 0, decryptedData.position());
                     String decryptedString = new String(decryptedBytes);
@@ -152,16 +154,12 @@ public class SSLManagerTest
                 {
                     sslServer.shakeHands(CLIENT);
                     return;
-                }
+                }*/
             }
         };
 
-        sslServer.setTransport(serverTransport);
-        sslClient.setTransport(clientTransport);
-        sslServer.initSSLEngine(CLIENT);
-        sslClient.initSSLEngine(SERVER);
-
-        sslServer.beginSSLHandshake(CLIENT, new HandshakeCompletedListener()
+/*
+        sslServer.initSSLEngine(CLIENT, new HandshakeCompletedListener()
         {
             @Override
             public void handshakeCompleted(HandshakeCompletedEvent handshakeCompletedEvent)
@@ -169,16 +167,14 @@ public class SSLManagerTest
                 assertTrue(true);
             }
         });
-
-        sslClient.beginSSLHandshake(SERVER, new HandshakeCompletedListener()
+        sslClient.initSSLEngine(SERVER, new HandshakeCompletedListener()
         {
             @Override
             public void handshakeCompleted(HandshakeCompletedEvent handshakeCompletedEvent)
             {
                 try
                 {
-                    ByteBuffer encryptedData = sslClient.allocateByteBuffer(SERVER, SSLManager.Operation.SENDING);
-                    sslClient.send(SERVER, sampleData);
+                    sslClient.encrypt(SERVER, sampleData);
                 }
                 catch (IOException e)
                 {
@@ -186,5 +182,10 @@ public class SSLManagerTest
                 }
             }
         });
+*/
+
+        sslServer.beginSSLHandshake(CLIENT);
+
+        sslClient.beginSSLHandshake(SERVER);
     }
 }

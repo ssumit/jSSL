@@ -14,7 +14,7 @@
         </encoder>
     </appender>
 
-    <logger name="prj.cyclo" level="ALL" additivity="false">
+    <logger name="prj.jSSL" level="ALL" additivity="false">
         <appender-ref ref="CONSOLE" />
         <appender-ref ref="FILE" />
     </logger>
