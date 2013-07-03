@@ -43,11 +43,18 @@ public class SSLManagerTest
         final Integer SERVER = 10;
 
         IReaderWriter _sslServerTransport = new IReaderWriter() {
+            byte[] remaingingData = new byte[0];
             @Override
             public byte[] read(ReadEvent readEvent)
             {
                 System.out.println("read event : " + readEvent);
-                return new byte[0];
+                switch (readEvent)
+                {
+                    case REMAINING_DATA:
+                        return remaingingData;
+                    default:
+                        return new byte[0];
+                }
             }
 
             @Override
@@ -57,7 +64,22 @@ public class SSLManagerTest
                 System.out.println("S > C: " + dataToBeWritten.length);
                 System.out.println("SSLClient| Received data");
                 try {
-                    sslClient.decrypt(SERVER, dataToBeWritten);
+                    switch (writeEvent)
+                    {
+                        case REMAINING_DATA:
+                            byte[] temp = new byte[remaingingData.length + dataToBeWritten.length];
+                            System.arraycopy(remaingingData, 0, temp, 0, remaingingData.length);
+                            System.arraycopy(dataToBeWritten, 0, temp, remaingingData.length, dataToBeWritten.length);
+                            remaingingData = temp;
+                            break;
+                        case HANDSHAKE_COMPLETE_STATUS:
+                            break;
+                        case WRAP_STATE:
+                            sslClient.decrypt(SERVER, dataToBeWritten);
+                            break;
+                        case UNWRAP_STATE:
+                            break;
+                    }
                     sslClient.shakeHands(SERVER);
                 } catch (IOException e) {
                     System.out.println("S > C: : IOEXCEPTION" );
@@ -66,11 +88,18 @@ public class SSLManagerTest
         };
 
         IReaderWriter _sslClientTransport = new IReaderWriter() {
+            byte[] remaingingData = new byte[0];
             @Override
             public byte[] read(ReadEvent readEvent)
             {
                 System.out.println("read event : " + readEvent);
-                return new byte[0];
+                switch (readEvent)
+                {
+                    case REMAINING_DATA:
+                        return remaingingData;
+                    default:
+                        return new byte[0];
+                }
             }
 
             @Override
@@ -80,7 +109,22 @@ public class SSLManagerTest
                 System.out.println("C > S: " + dataToBeWritten.length);
                 System.out.println("SSLServer| Received data");
                 try{
-                    sslServer.decrypt(CLIENT, dataToBeWritten);
+                    switch (writeEvent)
+                    {
+                        case REMAINING_DATA:
+                            byte[] temp = new byte[remaingingData.length + dataToBeWritten.length];
+                            System.arraycopy(remaingingData, 0, temp, 0, remaingingData.length);
+                            System.arraycopy(dataToBeWritten, 0, temp, remaingingData.length, dataToBeWritten.length);
+                            remaingingData = temp;
+                            break;
+                        case HANDSHAKE_COMPLETE_STATUS:
+                            break;
+                        case WRAP_STATE:
+                            sslServer.decrypt(CLIENT, dataToBeWritten);
+                            break;
+                        case UNWRAP_STATE:
+                            break;
+                    }
                     sslServer.shakeHands(CLIENT);
                 }
                 catch (IOException e)
@@ -127,6 +171,7 @@ public class SSLManagerTest
         final byte[] sampleData = sampleString.getBytes();
 
 
+/*
         SSLTransport<Integer> serverTransport = new SSLTransport<Integer>()
         {
             @Override
@@ -142,7 +187,7 @@ public class SSLManagerTest
             public void send(Integer key, byte[] data) throws IOException
             {
                 sslServer.decrypt(CLIENT, data);
-/*                if (sslClient.isHandshakeCompleted(SERVER))
+                if (sslClient.isHandshakeCompleted(SERVER))
                 {
                     byte[] decryptedBytes = Arrays.copyOfRange(decryptedData.array(), 0, decryptedData.position());
                     String decryptedString = new String(decryptedBytes);
@@ -154,9 +199,10 @@ public class SSLManagerTest
                 {
                     sslServer.shakeHands(CLIENT);
                     return;
-                }*/
+                }
             }
         };
+*/
 
 /*
         sslServer.initSSLEngine(CLIENT, new HandshakeCompletedListener()

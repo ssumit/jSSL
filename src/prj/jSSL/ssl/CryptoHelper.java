@@ -49,10 +49,10 @@ public class CryptoHelper
             switch (sslEngineResult.getStatus())
             {
                 case BUFFER_UNDERFLOW:
-                    //source buffer is small so either we enlarge it or break the data to call unwrap multiple time it
+                    //source buffer is small so either we enlarge it or break the data to call wrap multiple time it
                     throw new RuntimeException("BUFFER UNDERFLOW WRAP");
                 case BUFFER_OVERFLOW:
-                    //break the data into smaller chunks as the destination buffer is small and again unwrap OR we can enlarge the buffer
+                    //break the data into smaller chunks as the destination buffer is small and again wrap OR we can enlarge the buffer
                     int appSize = customSSLEngine.getSSLEngine().getSession().getPacketBufferSize();
                     ByteBuffer byteBuffer = ByteBuffer.allocate(appSize + outgoingData.position());
                     outgoingData.flip();
@@ -81,7 +81,7 @@ public class CryptoHelper
             switch (result.getStatus())
             {
                 case BUFFER_UNDERFLOW:
-                    //source buffer is small so either we enlarge it or break the data to call unwrap multiple time it
+                    //source buffer is small so we enlarge it. Also we might have to  wait till a complete TLS/SSL packet arrives as SSL Engine does not work on partial packets.
                     customSSLEngine.write(IReaderWriter.WriteEvent.REMAINING_DATA, encryptedDataBytes);
                 case BUFFER_OVERFLOW:
                     //break the data into smaller chunks as the destination buffer is small and again unwrap OR we can enlarge the buffer
