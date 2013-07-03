@@ -5,17 +5,17 @@ import java.io.IOException;
 public class SSL
 {
     private CustomSSLEngine _sslEngine;
-    private SSLShakehandsHandler _sslShakehandsHandler;
+    private SSLShakeHandHandler _sslShakeHandHandler;
 
     public SSL(CustomSSLEngine sslEngine)
     {
         _sslEngine = sslEngine;
-        _sslShakehandsHandler = new SSLShakehandsHandler(sslEngine);
+        _sslShakeHandHandler = new SSLShakeHandHandler(sslEngine);
     }
 
     public void startHandShaking() throws IOException
     {
-        _sslShakehandsHandler.shakehands();
+        _sslShakeHandHandler.shakeHands();
     }
 
     public void encrypt(String plainData)

@@ -2,7 +2,7 @@ package prj.jSSL.ssl.handshaking;
 
 import prj.jSSL.ssl.CustomSSLEngine;
 
-public class FinishedHandshakeState<KEY> extends IHandShakeState
+public class FinishedHandshakeState extends IHandShakeState
 {
     public FinishedHandshakeState(CustomSSLEngine sslEngine)
     {

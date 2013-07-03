@@ -1,18 +1,15 @@
 package prj.jSSL.ssl;
 
-import javax.net.ssl.HandshakeCompletedListener;
 import javax.net.ssl.SSLEngine;
 
 public class CustomSSLEngine implements IReaderWriter
 {
-    private HandshakeCompletedListener mHandshakeCompletedListener;
     private SSLEngine mSSLEngine;
     private IReaderWriter mReaderWriter;
 
-    public CustomSSLEngine(SSLEngine sslEngine, HandshakeCompletedListener handshakeCompletedListener, IReaderWriter readerWriter)
+    public CustomSSLEngine(SSLEngine sslEngine, IReaderWriter readerWriter)
     {
         mSSLEngine = sslEngine;
-        mHandshakeCompletedListener = handshakeCompletedListener;
         mReaderWriter = readerWriter;
     }
 

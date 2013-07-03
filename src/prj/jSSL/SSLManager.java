@@ -4,10 +4,9 @@ import org.slf4j.LoggerFactory;
 import prj.jSSL.ssl.CryptoHelper;
 import prj.jSSL.ssl.CustomSSLEngine;
 import prj.jSSL.ssl.IReaderWriter;
-import prj.jSSL.ssl.SSLShakehandsHandler;
+import prj.jSSL.ssl.SSLShakeHandHandler;
 import prj.jSSL.store.ISSLStore;
 
-import javax.net.ssl.HandshakeCompletedListener;
 import javax.net.ssl.SSLEngine;
 import java.io.IOException;
 import java.security.KeyManagementException;
@@ -34,9 +33,9 @@ public class SSLManager<KEY>
         new SSLEngineBuilder().initSSLEngine(config, getSSLEngine(userKey).getSSLEngine());
     }
 
-    public void initSSLEngine(KEY userKey, HandshakeCompletedListener handshakeCompletedListener, IReaderWriter readerWriter) throws IOException, NoSuchAlgorithmException, KeyManagementException, KeyStoreException, CertificateException, UnrecoverableKeyException
+    public void initSSLEngine(KEY userKey, IReaderWriter readerWriter) throws IOException, NoSuchAlgorithmException, KeyManagementException, KeyStoreException, CertificateException, UnrecoverableKeyException
     {
-        CustomSSLEngine sslEngine = new SSLEngineBuilder().createAndInitSSLEngine(_config, handshakeCompletedListener, readerWriter);
+        CustomSSLEngine sslEngine = new SSLEngineBuilder().createAndInitSSLEngine(_config, readerWriter);
         _store.putSSLEngine(userKey, sslEngine);
     }
 
@@ -49,7 +48,7 @@ public class SSLManager<KEY>
 
     public void shakeHands(KEY userKey) throws IOException
     {
-        new SSLShakehandsHandler(getSSLEngine(userKey)).shakehands();
+        new SSLShakeHandHandler(getSSLEngine(userKey)).shakeHands();
     }
 
     public void encrypt(KEY userKey, byte[] plainBytes) throws IOException

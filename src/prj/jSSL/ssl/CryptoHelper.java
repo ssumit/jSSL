@@ -21,11 +21,7 @@ public class CryptoHelper
     {
         try
         {
-            SSLEngineResult result = unwrap(sslEngine, encryptedDataBytes);
-            if (isHandshakeStatusFinished(result))
-            {
-                new SSLShakehandsHandler(sslEngine).finishShakeHand();
-            }
+            unwrap(sslEngine, encryptedDataBytes);
         }
         catch (IOException exception)
         {
@@ -98,10 +94,5 @@ public class CryptoHelper
                         break;
             }
         }
-    }
-
-    protected boolean isHandshakeStatusFinished(SSLEngineResult result)
-    {
-        return result.getHandshakeStatus().equals(SSLEngineResult.HandshakeStatus.FINISHED);
     }
 }

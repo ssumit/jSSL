@@ -6,8 +6,6 @@ import prj.jSSL.ssl.IReaderWriter;
 import prj.jSSL.store.KeyStoreInfo;
 import prj.jSSL.store.SSLStore;
 
-import javax.net.ssl.HandshakeCompletedEvent;
-import javax.net.ssl.HandshakeCompletedListener;
 import java.io.IOException;
 
 import static junit.framework.Assert.assertTrue;
@@ -43,7 +41,7 @@ public class SSLManagerTest
         final Integer SERVER = 10;
 
         IReaderWriter _sslServerTransport = new IReaderWriter() {
-            byte[] remaingingData = new byte[0];
+            byte[] remainingData = new byte[0];
             @Override
             public byte[] read(ReadEvent readEvent)
             {
@@ -51,7 +49,9 @@ public class SSLManagerTest
                 switch (readEvent)
                 {
                     case REMAINING_DATA:
-                        return remaingingData;
+                        byte[] returnData = remainingData;
+                        remainingData = new byte[0];
+                        return returnData;
                     default:
                         return new byte[0];
                 }
@@ -67,20 +67,22 @@ public class SSLManagerTest
                     switch (writeEvent)
                     {
                         case REMAINING_DATA:
-                            byte[] temp = new byte[remaingingData.length + dataToBeWritten.length];
-                            System.arraycopy(remaingingData, 0, temp, 0, remaingingData.length);
-                            System.arraycopy(dataToBeWritten, 0, temp, remaingingData.length, dataToBeWritten.length);
-                            remaingingData = temp;
+                            byte[] temp = new byte[remainingData.length + dataToBeWritten.length];
+                            System.arraycopy(remainingData, 0, temp, 0, remainingData.length);
+                            System.arraycopy(dataToBeWritten, 0, temp, remainingData.length, dataToBeWritten.length);
+                            remainingData = temp;
                             break;
                         case HANDSHAKE_COMPLETE_STATUS:
-                            break;
+                            System.out.println("Server Done");
+                            assertTrue(true);
+                            return;
                         case WRAP_STATE:
                             sslClient.decrypt(SERVER, dataToBeWritten);
                             break;
                         case UNWRAP_STATE:
                             break;
                     }
-                    sslClient.shakeHands(SERVER);
+                    sslServer.shakeHands(CLIENT);
                 } catch (IOException e) {
                     System.out.println("S > C: : IOEXCEPTION" );
                 }
@@ -88,7 +90,7 @@ public class SSLManagerTest
         };
 
         IReaderWriter _sslClientTransport = new IReaderWriter() {
-            byte[] remaingingData = new byte[0];
+            byte[] remainingData = new byte[0];
             @Override
             public byte[] read(ReadEvent readEvent)
             {
@@ -96,7 +98,9 @@ public class SSLManagerTest
                 switch (readEvent)
                 {
                     case REMAINING_DATA:
-                        return remaingingData;
+                        byte[] returnData = remainingData;
+                        remainingData = new byte[0];
+                        return returnData;
                     default:
                         return new byte[0];
                 }
@@ -112,20 +116,22 @@ public class SSLManagerTest
                     switch (writeEvent)
                     {
                         case REMAINING_DATA:
-                            byte[] temp = new byte[remaingingData.length + dataToBeWritten.length];
-                            System.arraycopy(remaingingData, 0, temp, 0, remaingingData.length);
-                            System.arraycopy(dataToBeWritten, 0, temp, remaingingData.length, dataToBeWritten.length);
-                            remaingingData = temp;
+                            byte[] temp = new byte[remainingData.length + dataToBeWritten.length];
+                            System.arraycopy(remainingData, 0, temp, 0, remainingData.length);
+                            System.arraycopy(dataToBeWritten, 0, temp, remainingData.length, dataToBeWritten.length);
+                            remainingData = temp;
                             break;
                         case HANDSHAKE_COMPLETE_STATUS:
-                            break;
+                            System.out.println("Client Done");
+                            assertTrue(true);
+                            return;
                         case WRAP_STATE:
                             sslServer.decrypt(CLIENT, dataToBeWritten);
                             break;
                         case UNWRAP_STATE:
                             break;
                     }
-                    sslServer.shakeHands(CLIENT);
+                    sslClient.shakeHands(SERVER);
                 }
                 catch (IOException e)
                 {
@@ -134,25 +140,9 @@ public class SSLManagerTest
             }
         };
 
-        sslServer.initSSLEngine(CLIENT, new HandshakeCompletedListener()
-        {
-            @Override
-            public void handshakeCompleted(HandshakeCompletedEvent handshakeCompletedEvent)
-            {
-                System.out.println("Server Done");
-                assertTrue(true);
-            }
-        }, _sslServerTransport);
+        sslServer.initSSLEngine(CLIENT, _sslServerTransport);
 
-        sslClient.initSSLEngine(SERVER, new HandshakeCompletedListener()
-        {
-            @Override
-            public void handshakeCompleted(HandshakeCompletedEvent handshakeCompletedEvent)
-            {
-                System.out.println("Client Done");
-                assertTrue(true);
-            }
-        }, _sslClientTransport);
+        sslClient.initSSLEngine(SERVER, _sslClientTransport);
 
         System.out.println("SSLCLIENT| handshake begins");
         sslClient.beginSSLHandshake(SERVER);

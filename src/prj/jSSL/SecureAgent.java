@@ -4,8 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import prj.jSSL.ssl.IReaderWriter;
 
-import javax.net.ssl.HandshakeCompletedEvent;
-import javax.net.ssl.HandshakeCompletedListener;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.HashMap;
@@ -63,14 +61,16 @@ public abstract class SecureAgent extends Agent
     {
         try
         {
-            _sslManager.initSSLEngine(socket, new HandshakeCompletedListener()
+            _sslManager.initSSLEngine(socket, _sslTransport);
+
+/*            new HandshakeCompletedListener()
             {
                 public void handshakeCompleted(HandshakeCompletedEvent alwaysNull)
                 {
                     cancelHandshakeTimeoutTask(socket);
                     secureConnectionMade(socket);
                 }
-            }, _sslTransport);
+            }*/
             final ScheduledFuture handShakeTimeoutTask = scheduleHandshakeTimeout(socket);
             _handshakeTimeoutTasks.put(socket, handShakeTimeoutTask);
 
