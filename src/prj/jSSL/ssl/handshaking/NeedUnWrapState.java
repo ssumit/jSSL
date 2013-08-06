@@ -45,7 +45,6 @@ public class NeedUnWrapState extends IHandShakeState
 
     private boolean anyUnprocessedDataFromPreviousReceives()
     {
-        byte[] data = customSSLEngine.read(IReaderWriter.ReadEvent.REMAINING_DATA);
-        return data!=null && data.length>0;
+        return customSSLEngine.hasData(IReaderWriter.ReadEvent.REMAINING_UNPROCESSED_DATA);
     }
 }

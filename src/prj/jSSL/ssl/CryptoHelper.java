@@ -56,7 +56,7 @@ public class CryptoHelper
                     outgoingData = byteBuffer;
                     break;
                 case OK:
-                    customSSLEngine.write(IReaderWriter.WriteEvent.WRAP_STATE, outgoingData.array());
+                    customSSLEngine.write(IReaderWriter.WriteEvent.WRAPPED_OUTPUT, outgoingData.array());
                     return sslEngineResult;
                 case CLOSED:
                     break;
@@ -66,7 +66,7 @@ public class CryptoHelper
 
     private SSLEngineResult unwrap(CustomSSLEngine customSSLEngine, byte[] encryptedDataBytes) throws IOException, RuntimeException
     {
-        byte[] pendingData = customSSLEngine.read(IReaderWriter.ReadEvent.REMAINING_DATA);
+        byte[] pendingData = customSSLEngine.read(IReaderWriter.ReadEvent.REMAINING_UNPROCESSED_DATA);
         ByteBuffer totalIncomingData = ByteBuffer.allocate(pendingData.length + encryptedDataBytes.length);
         totalIncomingData.put(pendingData);
         totalIncomingData.put(encryptedDataBytes);
@@ -78,7 +78,7 @@ public class CryptoHelper
             {
                 case BUFFER_UNDERFLOW:
                     //source buffer is small so we enlarge it. Also we might have to  wait till a complete TLS/SSL packet arrives as SSL Engine does not work on partial packets.
-                    customSSLEngine.write(IReaderWriter.WriteEvent.REMAINING_DATA, encryptedDataBytes);
+                    customSSLEngine.write(IReaderWriter.WriteEvent.REMAINING_UNPROCESSED_DATA, encryptedDataBytes);
                 case BUFFER_OVERFLOW:
                     //break the data into smaller chunks as the destination buffer is small and again unwrap OR we can enlarge the buffer
                     int appSize = customSSLEngine.getSSLEngine().getSession().getApplicationBufferSize();
@@ -88,7 +88,7 @@ public class CryptoHelper
                     unwrappedData = byteBuffer;
                     break;
                 case OK:
-                    customSSLEngine.write(IReaderWriter.WriteEvent.UNWRAP_STATE, unwrappedData.array());
+                    customSSLEngine.write(IReaderWriter.WriteEvent.UNWRAPPED_OUTPUT, unwrappedData.array());
                     return result;
                 case CLOSED:
                         break;

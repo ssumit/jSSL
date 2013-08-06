@@ -21,6 +21,12 @@ public class CustomSSLEngine implements IReaderWriter
     }
 
     @Override
+    public boolean hasData(ReadEvent readEvent)
+    {
+        return mReaderWriter.hasData(readEvent);
+    }
+
+    @Override
     public void write(WriteEvent writeEvent, byte[] dataToBeWritten)
     {
         System.out.println("write : customSSLE data : " + dataToBeWritten + " write event : " + writeEvent);

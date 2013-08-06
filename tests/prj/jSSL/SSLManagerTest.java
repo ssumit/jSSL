@@ -48,13 +48,19 @@ public class SSLManagerTest
                 System.out.println("read event : " + readEvent);
                 switch (readEvent)
                 {
-                    case REMAINING_DATA:
+                    case REMAINING_UNPROCESSED_DATA:
                         byte[] returnData = remainingData;
                         remainingData = new byte[0];
                         return returnData;
                     default:
                         return new byte[0];
                 }
+            }
+
+            @Override
+            public boolean hasData(ReadEvent readEvent)
+            {
+                return (remainingData.length > 0);
             }
 
             @Override
@@ -66,7 +72,7 @@ public class SSLManagerTest
                 try {
                     switch (writeEvent)
                     {
-                        case REMAINING_DATA:
+                        case REMAINING_UNPROCESSED_DATA:
                             byte[] temp = new byte[remainingData.length + dataToBeWritten.length];
                             System.arraycopy(remainingData, 0, temp, 0, remainingData.length);
                             System.arraycopy(dataToBeWritten, 0, temp, remainingData.length, dataToBeWritten.length);
@@ -76,10 +82,10 @@ public class SSLManagerTest
                             System.out.println("Server Done");
                             assertTrue(true);
                             return;
-                        case WRAP_STATE:
+                        case WRAPPED_OUTPUT:
                             sslClient.decrypt(SERVER, dataToBeWritten);
                             break;
-                        case UNWRAP_STATE:
+                        case UNWRAPPED_OUTPUT:
                             break;
                     }
                     sslServer.shakeHands(CLIENT);
@@ -89,7 +95,8 @@ public class SSLManagerTest
             }
         };
 
-        IReaderWriter _sslClientTransport = new IReaderWriter() {
+        IReaderWriter _sslClientTransport = new IReaderWriter()
+        {
             byte[] remainingData = new byte[0];
             @Override
             public byte[] read(ReadEvent readEvent)
@@ -97,13 +104,19 @@ public class SSLManagerTest
                 System.out.println("read event : " + readEvent);
                 switch (readEvent)
                 {
-                    case REMAINING_DATA:
+                    case REMAINING_UNPROCESSED_DATA:
                         byte[] returnData = remainingData;
                         remainingData = new byte[0];
                         return returnData;
                     default:
                         return new byte[0];
                 }
+            }
+
+            @Override
+            public boolean hasData(ReadEvent readEvent)
+            {
+                return remainingData.length > 0;
             }
 
             @Override
@@ -115,7 +128,7 @@ public class SSLManagerTest
                 try{
                     switch (writeEvent)
                     {
-                        case REMAINING_DATA:
+                        case REMAINING_UNPROCESSED_DATA:
                             byte[] temp = new byte[remainingData.length + dataToBeWritten.length];
                             System.arraycopy(remainingData, 0, temp, 0, remainingData.length);
                             System.arraycopy(dataToBeWritten, 0, temp, remainingData.length, dataToBeWritten.length);
@@ -125,10 +138,10 @@ public class SSLManagerTest
                             System.out.println("Client Done");
                             assertTrue(true);
                             return;
-                        case WRAP_STATE:
+                        case WRAPPED_OUTPUT:
                             sslServer.decrypt(CLIENT, dataToBeWritten);
                             break;
-                        case UNWRAP_STATE:
+                        case UNWRAPPED_OUTPUT:
                             break;
                     }
                     sslClient.shakeHands(SERVER);

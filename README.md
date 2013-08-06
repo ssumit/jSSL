@@ -8,3 +8,5 @@ This lib basically take care of conditions if the SSLEngine is not able wrap/unw
 because of buffer size restrictions and the fact that SSLEngine consumes complete SSL/TLS packets only. There is not
 threading in this lib and it is up to the user to do this preferably over the lib. In case, you choose to modify the
 library, please make sure that SSL/TLS packets are received in order.
+
+NOTE : Work is in progress. The initial first commit is working fine however the subsequent commits are buggy/incomplete.

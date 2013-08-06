@@ -45,6 +45,12 @@ public abstract class SecureAgent extends Agent
             }
 
             @Override
+            public boolean hasData(ReadEvent readEvent)
+            {
+                return false;
+            }
+
+            @Override
             public void write(WriteEvent writeEvent, byte[] dataToBeWritten)
             {
                 System.out.println("write event : " + writeEvent + " data : " + dataToBeWritten);

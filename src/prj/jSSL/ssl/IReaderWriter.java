@@ -11,6 +11,8 @@ public interface IReaderWriter
      */
     public byte[] read(ReadEvent readEvent);
 
+    public boolean hasData(ReadEvent readEvent);
+
     /**
      * This function will append the data to the already existing data associated with the same write event. If
      * originally there is no data then this data is associated with the event.
@@ -20,10 +22,10 @@ public interface IReaderWriter
     public void write(WriteEvent writeEvent, byte[] dataToBeWritten);
     public enum WriteEvent
     {
-        HANDSHAKE_COMPLETE_STATUS, WRAP_STATE, REMAINING_DATA, UNWRAP_STATE;
+        HANDSHAKE_COMPLETE_STATUS, WRAPPED_OUTPUT, REMAINING_UNPROCESSED_DATA, UNWRAPPED_OUTPUT;
     }
     public enum ReadEvent
     {
-        REMAINING_DATA;
+        REMAINING_UNPROCESSED_DATA;
     }
 }
