@@ -9,21 +9,25 @@ import java.io.IOException;
 public class SSLHandshakeStateHolder
 {
     private IHandShakeState _handShakeState;
+    private CustomSSLEngine customSSLEngine;
     private org.slf4j.Logger _logger = LoggerFactory.getLogger(SSLHandshakeStateHolder.this.getClass().getSimpleName());
 
     public SSLHandshakeStateHolder(SSLEngineResult.HandshakeStatus handshakeStatus, CustomSSLEngine sslEngine)
     {
-        _handShakeState = getAppropriateState(handshakeStatus, sslEngine);
+        customSSLEngine = sslEngine;
+        _handShakeState = getAppropriateState(handshakeStatus, customSSLEngine);
     }
 
     public SSLHandshakeStateHolder(CustomSSLEngine customSSLEngine)
     {
-        this(customSSLEngine.getSSLEngine().getHandshakeStatus(), customSSLEngine);
+        this(customSSLEngine.getHandshakeStatus(), customSSLEngine);
     }
 
     public boolean shakeHands() throws IOException
     {
-        return _handShakeState.shakeHands();
+        boolean returnVal = _handShakeState.shakeHands();
+        _handShakeState = getAppropriateState(customSSLEngine.getHandshakeStatus(), customSSLEngine);
+        return returnVal;
     }
 
     private IHandShakeState getAppropriateState(SSLEngineResult.HandshakeStatus handshakeStatus, CustomSSLEngine sslEngine) {

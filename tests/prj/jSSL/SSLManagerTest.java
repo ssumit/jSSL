@@ -45,7 +45,7 @@ public class SSLManagerTest
             @Override
             public byte[] read(ReadEvent readEvent)
             {
-                System.out.println("read event : " + readEvent);
+                System.out.println("SSLServerTransport read event : " + readEvent);
                 switch (readEvent)
                 {
                     case REMAINING_UNPROCESSED_DATA:
@@ -66,9 +66,9 @@ public class SSLManagerTest
             @Override
             public void write(WriteEvent writeEvent, byte[] dataToBeWritten)
             {
-                System.out.println("write event : " + writeEvent + " data : " + dataToBeWritten);
-                System.out.println("S > C: " + dataToBeWritten.length);
-                System.out.println("SSLClient| Received data");
+                System.out.println("SSLServerTransport write event : " + writeEvent);
+                System.out.println("SSLServerTransport S > C: " + dataToBeWritten.length);
+                System.out.println("SSLServerTransport SSLClient| Received data");
                 try {
                     switch (writeEvent)
                     {
@@ -101,7 +101,7 @@ public class SSLManagerTest
             @Override
             public byte[] read(ReadEvent readEvent)
             {
-                System.out.println("read event : " + readEvent);
+                System.out.println("SSLClientTransport read event : " + readEvent);
                 switch (readEvent)
                 {
                     case REMAINING_UNPROCESSED_DATA:
@@ -122,9 +122,9 @@ public class SSLManagerTest
             @Override
             public void write(WriteEvent writeEvent, byte[] dataToBeWritten)
             {
-                System.out.println("write event : " + writeEvent + " data : " + dataToBeWritten);
-                System.out.println("C > S: " + dataToBeWritten.length);
-                System.out.println("SSLServer| Received data");
+                System.out.println("SSLClientTransport write event : " + writeEvent );
+                System.out.println("SSLClientTransport C > S: " + dataToBeWritten.length);
+                System.out.println("SSLClientTransport SSLServer| Received data");
                 try{
                     switch (writeEvent)
                     {
@@ -156,12 +156,11 @@ public class SSLManagerTest
         sslServer.initSSLEngine(CLIENT, _sslServerTransport);
 
         sslClient.initSSLEngine(SERVER, _sslClientTransport);
+        System.out.println("SSLServer| handshake begins");
+        sslServer.beginSSLHandshake(CLIENT);
 
         System.out.println("SSLCLIENT| handshake begins");
         sslClient.beginSSLHandshake(SERVER);
-
-        System.out.println("SSLServer| handshake begins");
-        sslServer.beginSSLHandshake(CLIENT);
     }
 
     @Test
@@ -170,7 +169,7 @@ public class SSLManagerTest
         final Integer CLIENT = 9;
         final Integer SERVER = 10;
 
-        final String sampleString = "Test data datadata data data data data data data data data data data data data data data data data  data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data ";
+        final String sampleString = "data data data data data data data data data data data data data data data data  data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data data ";
         final byte[] sampleData = sampleString.getBytes();
 
 

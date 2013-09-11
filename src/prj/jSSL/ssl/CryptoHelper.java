@@ -71,15 +71,53 @@ public class CryptoHelper
         totalIncomingData.put(pendingData);
         totalIncomingData.put(encryptedDataBytes);
         ByteBuffer unwrappedData = new BufferAllocator().getEmptyByteBuffer(customSSLEngine, SSLManager.Operation.RECEIVING);
-        while (true)
+        SSLEngineResult result;
+        int totalBytesConsumed = 0;
+        int totalBytesToBeConsumed = totalIncomingData.array().length;
+        System.out.println("Crypto unwrap: , total bytes to be consumed : " + totalBytesToBeConsumed);
+        do
         {
-            SSLEngineResult result = customSSLEngine.getSSLEngine().unwrap(totalIncomingData, unwrappedData);
+            result = customSSLEngine.getSSLEngine().unwrap(totalIncomingData, unwrappedData);
+            totalBytesConsumed += result.bytesConsumed();
             switch (result.getStatus())
             {
                 case BUFFER_UNDERFLOW:
+                    System.out.println("Crypto unwrap: data - buffer underflow, totalInSize : " + pendingData.length + " encrypt : " + encryptedDataBytes.length);
+                    int netSize = customSSLEngine.getSSLEngine().getSession().getPacketBufferSize();
+                    if(netSize <= unwrappedData.capacity())
+                    {
+                        System.out.println("Crypto unwrap: data - buffer underflow, if true : ");
+                        ByteBuffer byteBuffer = ByteBuffer.allocate(netSize);
+                        totalIncomingData.flip();
+                        byteBuffer.put(totalIncomingData);
+                        totalIncomingData = byteBuffer;
+                        break;
+                    }
+                    else
+                    {
+                        System.out.println("Crypto unwrap: data - buffer underflow, if false: ");
+                        int bytesLeftOut = totalBytesToBeConsumed - totalBytesConsumed;
+                        byte[] temp = new byte[bytesLeftOut];
+                        int offsetInTemp = 0;
+                        if (bytesLeftOut > encryptedDataBytes.length)
+                        {
+                            offsetInTemp = pendingData.length - (bytesLeftOut - encryptedDataBytes.length);
+                            System.arraycopy(pendingData, pendingData.length - (bytesLeftOut - encryptedDataBytes.length) - 1, temp, 0, offsetInTemp);
+                        }
+                        if (bytesLeftOut<= encryptedDataBytes.length)
+                        {
+                            System.arraycopy(encryptedDataBytes, encryptedDataBytes.length - bytesLeftOut, temp, offsetInTemp, encryptedDataBytes.length - bytesLeftOut);
+                        }
+                        else
+                        {
+                            System.arraycopy(encryptedDataBytes, 0, temp, offsetInTemp, encryptedDataBytes.length);
+                        }
+                        customSSLEngine.write(IReaderWriter.WriteEvent.REMAINING_UNPROCESSED_DATA, temp);
+                        return result;
+                    }
                     //source buffer is small so we enlarge it. Also we might have to  wait till a complete TLS/SSL packet arrives as SSL Engine does not work on partial packets.
-                    customSSLEngine.write(IReaderWriter.WriteEvent.REMAINING_UNPROCESSED_DATA, encryptedDataBytes);
                 case BUFFER_OVERFLOW:
+                    System.out.println("Crypto unwrap: data - buffer overflow");
                     //break the data into smaller chunks as the destination buffer is small and again unwrap OR we can enlarge the buffer
                     int appSize = customSSLEngine.getSSLEngine().getSession().getApplicationBufferSize();
                     ByteBuffer byteBuffer = ByteBuffer.allocate(appSize + unwrappedData.position());
@@ -88,11 +126,28 @@ public class CryptoHelper
                     unwrappedData = byteBuffer;
                     break;
                 case OK:
+                    System.out.println("Crypto unwrap: data - buffer ok");
                     customSSLEngine.write(IReaderWriter.WriteEvent.UNWRAPPED_OUTPUT, unwrappedData.array());
-                    return result;
+                    //return result;
                 case CLOSED:
+                    System.out.println("Crypto unwrap: data - buffer closed");
                         break;
             }
+        }while (needsUnwrap(customSSLEngine, result, totalBytesConsumed, totalBytesToBeConsumed));
+        System.out.println("Crypto unwrap: data out");
+        return result;
+    }
+
+    private boolean needsUnwrap(CustomSSLEngine customSSLEngine, SSLEngineResult result, int totalBytesConsumed, int totalBytesToBeConsumed)
+    {
+        boolean isHandShakeCompleted = customSSLEngine.getSSLEngine().getHandshakeStatus().equals(SSLEngineResult.HandshakeStatus.FINISHED);
+        if (!isHandShakeCompleted)
+        {
+            return result.getStatus() == SSLEngineResult.Status.OK && result.getHandshakeStatus().equals(SSLEngineResult.HandshakeStatus.NEED_UNWRAP) && result.bytesProduced() == 0;
+        }
+        else
+        {
+            return result.getStatus() == SSLEngineResult.Status.OK && (result.bytesProduced() != 0 || totalBytesConsumed < totalBytesToBeConsumed);
         }
     }
 }

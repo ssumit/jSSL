@@ -42,7 +42,7 @@ public class SSLManager<KEY>
     public void beginSSLHandshake(KEY userKey) throws IOException
     {
         CustomSSLEngine customSSLEngine = getSSLEngine(userKey);
-        customSSLEngine.getSSLEngine().beginHandshake();
+        customSSLEngine.beginHandShake();
         shakeHands(userKey);
     }
 

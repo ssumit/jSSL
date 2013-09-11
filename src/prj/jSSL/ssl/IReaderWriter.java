@@ -26,6 +26,6 @@ public interface IReaderWriter
     }
     public enum ReadEvent
     {
-        REMAINING_UNPROCESSED_DATA;
+        REMAINING_UNPROCESSED_DATA
     }
 }

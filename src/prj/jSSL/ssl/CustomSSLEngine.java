@@ -1,6 +1,8 @@
 package prj.jSSL.ssl;
 
 import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLEngineResult;
+import javax.net.ssl.SSLException;
 
 public class CustomSSLEngine implements IReaderWriter
 {
@@ -29,12 +31,22 @@ public class CustomSSLEngine implements IReaderWriter
     @Override
     public void write(WriteEvent writeEvent, byte[] dataToBeWritten)
     {
-        System.out.println("write : customSSLE data : " + dataToBeWritten + " write event : " + writeEvent);
+        System.out.println("write : customSSLE data length : " +(dataToBeWritten.length) + " write event : " + writeEvent);
         mReaderWriter.write(writeEvent, dataToBeWritten);
     }
 
     public SSLEngine getSSLEngine()
     {
         return mSSLEngine;
+    }
+
+    public void beginHandShake() throws SSLException
+    {
+        mSSLEngine.beginHandshake();
+    }
+
+    public SSLEngineResult.HandshakeStatus getHandshakeStatus()
+    {
+        return mSSLEngine.getHandshakeStatus();
     }
 }
