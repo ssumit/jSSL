@@ -8,6 +8,7 @@ import prj.jSSL.ssl.SSLShakeHandHandler;
 import prj.jSSL.store.ISSLStore;
 
 import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLEngineResult;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -99,6 +100,12 @@ public class SSLManager<KEY>
             _logger.warn("user key {} not present in map", key);
             throw new IOException("user key not present in map");
         }
+    }
+
+    public boolean isHandShakeComplete(KEY key)
+    {
+        CustomSSLEngine sslEngine = _store.getSSLEngine(key);
+        return sslEngine.getHandshakeStatus().equals(SSLEngineResult.HandshakeStatus.FINISHED);
     }
 
     public enum Operation

@@ -20,14 +20,15 @@ public class SSLShakeHandHandler
         while (true)
         {
             SSLEngineResult.HandshakeStatus status = _sslEngine.getHandshakeStatus();
+            System.out.println("state : " + status.name());
             if (status.equals(SSLEngineResult.HandshakeStatus.NEED_TASK))
             {
                 sslHandshakeStateHolder.shakeHands();
-                break;
             }
             else
             {
                 sslHandshakeStateHolder.shakeHands();
+                break;
             }
         }
     }

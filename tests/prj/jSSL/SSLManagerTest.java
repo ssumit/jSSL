@@ -36,7 +36,6 @@ public class SSLManagerTest
     @Test
     public void testHandshake() throws Exception
     {
-
         final Integer CLIENT = 9;
         final Integer SERVER = 10;
 
@@ -83,12 +82,15 @@ public class SSLManagerTest
                             assertTrue(true);
                             return;
                         case WRAPPED_OUTPUT:
-                            sslClient.decrypt(SERVER, dataToBeWritten);
+                            sslClient.decrypt(SERVER, dataToBeWritten);//server has sent to client so it will decrypt
                             break;
                         case UNWRAPPED_OUTPUT:
                             break;
                     }
-                    sslServer.shakeHands(CLIENT);
+                    if (!sslClient.isHandShakeComplete(SERVER))
+                    {
+                        sslClient.shakeHands(SERVER);
+                    }
                 } catch (IOException e) {
                     System.out.println("S > C: : IOEXCEPTION" );
                 }
@@ -144,7 +146,10 @@ public class SSLManagerTest
                         case UNWRAPPED_OUTPUT:
                             break;
                     }
-                    sslClient.shakeHands(SERVER);
+                    if (!sslServer.isHandShakeComplete(CLIENT))
+                    {
+                        sslClient.shakeHands(CLIENT);
+                    }
                 }
                 catch (IOException e)
                 {
@@ -163,7 +168,6 @@ public class SSLManagerTest
         sslClient.beginSSLHandshake(SERVER);
     }
 
-    @Test
     public void testDataSent() throws Exception
     {
         final Integer CLIENT = 9;
