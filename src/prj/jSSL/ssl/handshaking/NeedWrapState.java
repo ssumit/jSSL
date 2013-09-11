@@ -14,10 +14,9 @@ public class NeedWrapState extends IHandShakeState
     }
 
     @Override
-    public boolean shakeHands() throws IOException
+    public void shakeHands() throws IOException
     {
         System.out.println("need wrap state wrap shake hands start");
         new CryptoHelper().encrypt(customSSLEngine, new byte[0]);
-        return true;
     }
 }

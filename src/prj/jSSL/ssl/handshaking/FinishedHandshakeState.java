@@ -10,9 +10,8 @@ public class FinishedHandshakeState extends IHandShakeState
     }
 
     @Override
-    public boolean shakeHands()
+    public void shakeHands()
     {
         finishHandshake();
-        return true;
     }
 }

@@ -23,11 +23,14 @@ public class SSLHandshakeStateHolder
         this(customSSLEngine.getHandshakeStatus(), customSSLEngine);
     }
 
-    public boolean shakeHands() throws IOException
+    public void shakeHands() throws IOException
     {
-        boolean returnVal = _handShakeState.shakeHands();
+        _handShakeState.shakeHands();
+        updateHandShakeState();
+    }
+
+    private void updateHandShakeState() {
         _handShakeState = getAppropriateState(customSSLEngine.getHandshakeStatus(), customSSLEngine);
-        return returnVal;
     }
 
     private IHandShakeState getAppropriateState(SSLEngineResult.HandshakeStatus handshakeStatus, CustomSSLEngine sslEngine) {
@@ -47,9 +50,8 @@ public class SSLHandshakeStateHolder
             default:
                 return new IHandShakeState(sslEngine) {
                     @Override
-                    public boolean shakeHands() {
+                    public void shakeHands() {
                         _logger.warn("Illegal Handshake status");
-                        return true;
                     }
                 };
         }

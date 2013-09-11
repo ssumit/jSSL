@@ -10,8 +10,7 @@ public class NotHandShakingState<KEY> extends IHandShakeState
     }
 
     @Override
-    public boolean shakeHands()
+    public void shakeHands()
     {
-        return true;
     }
 }

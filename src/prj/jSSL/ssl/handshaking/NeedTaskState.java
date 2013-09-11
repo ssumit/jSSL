@@ -12,10 +12,9 @@ public class NeedTaskState extends IHandShakeState
     }
 
     @Override
-    public boolean shakeHands() throws IOException
+    public void shakeHands() throws IOException
     {
         processLongRunningTask();
-        return false;
     }
 
     private void processLongRunningTask()

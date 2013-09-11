@@ -14,7 +14,7 @@ public abstract class IHandShakeState
         customSSLEngine = sslEngine;
     }
 
-    public abstract boolean shakeHands() throws IOException;
+    public abstract void shakeHands() throws IOException;
 
     protected void finishHandshake()
     {

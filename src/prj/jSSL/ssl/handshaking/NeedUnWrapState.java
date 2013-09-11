@@ -13,11 +13,10 @@ public class NeedUnWrapState extends IHandShakeState
     }
 
     @Override
-    public boolean shakeHands() throws IOException
+    public void shakeHands() throws IOException
     {
         System.out.println("unwrap state");
         CryptoHelper cryptoHelper = new CryptoHelper();
         cryptoHelper.decrypt(customSSLEngine, new byte[0]);
-        return true;
     }
 }
