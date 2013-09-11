@@ -115,14 +115,14 @@ public abstract class SecureAgent extends Agent
         try
         {
             _sslManager.decrypt(socket, incomingData);
-/*            if (_sslManager.isHandshakeCompleted(socket))
+            if (_sslManager.isHandShakeComplete(socket))
             {
                 //secureReceive(socket, decryptedBytes); will do via listeners
             }
             else
             {
                 _sslManager.shakeHands(socket); //will do via listeners
-            }*/
+            }
         }
         catch (Exception e)
         {

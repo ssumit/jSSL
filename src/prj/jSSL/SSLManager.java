@@ -63,6 +63,7 @@ public class SSLManager<KEY>
         {
             SSLEngine engine = getSSLEngine(userKey).getSSLEngine();
             engine.getHandshakeSession().invalidate();
+            _store.removeSSLEngine(userKey);
         }
         catch (IOException e)
         {

@@ -76,6 +76,7 @@ public class SSLManagerTest
                             System.arraycopy(remainingData, 0, temp, 0, remainingData.length);
                             System.arraycopy(dataToBeWritten, 0, temp, remainingData.length, dataToBeWritten.length);
                             remainingData = temp;
+                      //      continueClientHandshakeIfNotComplete();
                             break;
                         case HANDSHAKE_COMPLETE_STATUS:
                             System.out.println("Server Done");
@@ -83,16 +84,21 @@ public class SSLManagerTest
                             return;
                         case WRAPPED_OUTPUT:
                             sslClient.decrypt(SERVER, dataToBeWritten);//server has sent to client so it will decrypt
+                            continueClientHandshakeIfNotComplete();
                             break;
                         case UNWRAPPED_OUTPUT:
+                    //        continueClientHandshakeIfNotComplete();
                             break;
-                    }
-                    if (!sslClient.isHandShakeComplete(SERVER))
-                    {
-                        sslClient.shakeHands(SERVER);
                     }
                 } catch (IOException e) {
                     System.out.println("S > C: : IOEXCEPTION" );
+                }
+            }
+
+            private void continueClientHandshakeIfNotComplete() throws IOException {
+                if (!sslClient.isHandShakeComplete(SERVER))
+                {
+                    sslClient.shakeHands(SERVER);
                 }
             }
         };
@@ -135,6 +141,7 @@ public class SSLManagerTest
                             System.arraycopy(remainingData, 0, temp, 0, remainingData.length);
                             System.arraycopy(dataToBeWritten, 0, temp, remainingData.length, dataToBeWritten.length);
                             remainingData = temp;
+                    //        continueServerHandshakeIfNotComplete();
                             break;
                         case HANDSHAKE_COMPLETE_STATUS:
                             System.out.println("Client Done");
@@ -142,13 +149,11 @@ public class SSLManagerTest
                             return;
                         case WRAPPED_OUTPUT:
                             sslServer.decrypt(CLIENT, dataToBeWritten);
+                            continueServerHandshakeIfNotComplete();
                             break;
                         case UNWRAPPED_OUTPUT:
+                      //      continueServerHandshakeIfNotComplete();
                             break;
-                    }
-                    if (!sslServer.isHandShakeComplete(CLIENT))
-                    {
-                        sslClient.shakeHands(CLIENT);
                     }
                 }
                 catch (IOException e)
@@ -156,16 +161,23 @@ public class SSLManagerTest
                     System.out.println("C > S: : IOEXCEPTION" );
                 }
             }
+
+            private void continueServerHandshakeIfNotComplete() throws IOException {
+                if (!sslServer.isHandShakeComplete(CLIENT))
+                {
+                    sslServer.shakeHands(CLIENT);
+                }
+            }
         };
 
         sslServer.initSSLEngine(CLIENT, _sslServerTransport);
 
         sslClient.initSSLEngine(SERVER, _sslClientTransport);
+        System.out.println("SSLCLIENT| handshake begins");
+        sslClient.beginSSLHandshake(SERVER);
         System.out.println("SSLServer| handshake begins");
         sslServer.beginSSLHandshake(CLIENT);
 
-        System.out.println("SSLCLIENT| handshake begins");
-        sslClient.beginSSLHandshake(SERVER);
     }
 
     public void testDataSent() throws Exception

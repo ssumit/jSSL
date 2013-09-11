@@ -84,7 +84,8 @@ public class CryptoHelper
                 case BUFFER_UNDERFLOW:
                     System.out.println("Crypto unwrap: data - buffer underflow, totalInSize : " + pendingData.length + " encrypt : " + encryptedDataBytes.length);
                     int netSize = customSSLEngine.getSSLEngine().getSession().getPacketBufferSize();
-                    if(netSize <= unwrappedData.capacity())
+                    System.out.println("crypto unwrap, netsize :  " + netSize + " unwrapped capacity : " + unwrappedData.capacity());
+                    if(netSize > unwrappedData.capacity())
                     {
                         System.out.println("Crypto unwrap: data - buffer underflow, if true : ");
                         ByteBuffer byteBuffer = ByteBuffer.allocate(netSize);
@@ -102,7 +103,7 @@ public class CryptoHelper
                         if (bytesLeftOut > encryptedDataBytes.length)
                         {
                             offsetInTemp = pendingData.length - (bytesLeftOut - encryptedDataBytes.length);
-                            System.arraycopy(pendingData, pendingData.length - (bytesLeftOut - encryptedDataBytes.length) - 1, temp, 0, offsetInTemp);
+                            System.arraycopy(pendingData, pendingData.length - (bytesLeftOut - encryptedDataBytes.length) , temp, 0, offsetInTemp);
                         }
                         if (bytesLeftOut<= encryptedDataBytes.length)
                         {
